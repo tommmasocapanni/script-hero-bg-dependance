@@ -1,18 +1,56 @@
 <!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pattern di Puntini Animato</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
-  </style>
-</head>
-<body>
-  <script>
+<html lang="en" class="no-js">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Motion Trail Animations | Demo 2 | Codrops</title>
+		<meta name="description" content="Ideas for Motion Trail Animations on Images" />
+		<meta name="keywords" content="motion trail, image animation, gsap, javascript, mouse trail" />
+		<meta name="author" content="Codrops" />
+		<link rel="shortcut icon" href="favicon.ico">
+		<link rel="stylesheet" type="text/css" href="css/base.css" />
+		<script>document.documentElement.className="js";</script>
+	</head>
+	<body class="demo-2 loading">
+		<main>
+			<div class="content">
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/1.jpg)"></div>
+				</div>
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/2.jpg)"></div>
+				</div>
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/3.jpg)"></div>
+				</div>
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/4.jpg)"></div>
+				</div>
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/5.jpg)"></div>
+				</div>
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/6.jpg)"></div>
+				</div>
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/7.jpg)"></div>
+				</div>
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/8.jpg)"></div>
+				</div>
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/9.jpg)"></div>
+				</div>
+				<div class="content__img">
+					<div class="content__img-inner" style="background-image:url(img/10.jpg)"></div>
+				</div>
+			</div><!--/content-->
+		</main>
+		<script src="js/imagesloaded.pkgd.min.js"></script>
+		<script src="js/gsap.min.js"></script>
+		<script type="module" src="js/demo2/index.js"></script>
+	</body>
+	<script>
     const dotSize = 1.0;
     const dotSpacing = 20;
     const crociniPercentage = 0.01;
@@ -148,31 +186,10 @@
         }
       });
 
-      setTimeout(() => requestAnimationFrame(drawDots), 33);
+      setTimeout(() => requestAnimationFrame(drawDots), 60);
     }
-
-    document.addEventListener('mousemove', (event) => {
-      const mouseX = event.clientX;
-      const mouseY = event.clientY;
-
-      crocini.forEach((crocino) => {
-        const distance = Math.sqrt(Math.pow(mouseX - crocino.x, 2) + Math.pow(mouseY - crocino.y, 2));
-        if (distance < mousePadding && Math.random() < hoverPercentage) {
-          crocino.highlighted = true;
-          const colors = ['rgba(255, 0, 255, 0.7)', 'rgba(0, 255, 0, 0.7)', 'rgba(0, 255, 255, 0.7)'];
-          crocino.color = colors[Math.floor(Math.random() * colors.length)];
-          crocino.lifetime = maxLifetime - Math.floor(distance / mousePadding * maxLifetime / 2);
-        } else {
-          if (!crocino.fadingOut && crocino.scale === 0) {
-            crocino.highlighted = false;
-            crocino.color = crocino.isCrocino ? 'rgba(200, 200, 200, 0.7)' : 'rgba(200, 200, 200, 0.5)';
-          }
-        }
-      });
-    });
 
     generateCrocini();
     drawDots();
   </script>
-</body>
 </html>
