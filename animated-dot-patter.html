@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pattern di Puntini Animato</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    const dotSize = 1.0;
+    const dotSpacing = 20;
+    const crociniPercentage = 0.01;
+    const hoverPercentage = 0.065;
+    let mousePadding = 60;
+    const maxLifetime = 80;
+
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '-1';
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    let crocini = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      ctx.scale(1, 1);
+      generateCrocini();
+      drawDots();
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    function generateCrocini() {
+      crocini = [];
+      for (let x = 0; x < canvas.width; x += dotSpacing) {
+        for (let y = 0; y < canvas.height; y += dotSpacing) {
+          const isCrocino = Math.random() < crociniPercentage;
+          crocini.push(createCrocino(x, y, isCrocino));
+        }
+      }
+    }
+
+    function createCrocino(x, y, isCrocino = false) {
+      return {
+        x,
+        y,
+        scale: isCrocino ? 1 : 0,
+        rotation: (Math.random() < 0.5 ? -1 : 1) * (0.1 + Math.random() * 0.8),
+        targetRotation: 0, // Nuova variabile per rotazione graduale
+        currentRotation: 0,
+        growthSpeed: 0.1 + Math.random() * 0.2,
+        rotationSpeedChangeFrequency: 10 + Math.random() * 100,
+        framesSinceLastChange: 0,
+        fadingOut: false,
+        color: isCrocino ? 'rgba(200, 200, 200, 0.7)' : 'rgba(200, 200, 200, 0.5)',
+        highlighted: false,
+        isCrocino,
+        lifetime: isCrocino ? Math.random() * 100 + 50 : Infinity,
+        traceScale: 1
+      };
+    }
+
+    // Funzione di interpolazione lineare
+    function lerp(start, end, t) {
+      return start + (end - start) * t;
+    }
+
+    function drawDots() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(150, 150, 150, 0.3)';
+
+      for (let x = 0; x < canvas.width; x += dotSpacing) {
+        for (let y = 0; y < canvas.height; y += dotSpacing) {
+          ctx.beginPath();
+          ctx.arc(x, y, dotSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      crocini.forEach((crocino, index) => {
+        if (!crocino) return;
+
+        if (crocino.highlighted) {
+          crocino.scale = Math.min(1.2, crocino.scale + crocino.growthSpeed * 1.2);
+          crocino.lifetime = Math.max(0, crocino.lifetime - 1);
+        } else if (!crocino.isCrocino) {
+          crocino.scale = Math.max(0, crocino.scale - crocino.growthSpeed);
+          if (crocino.scale === 0) {
+            crocino.highlighted = false;
+          }
+        }
+
+        if (crocino.isCrocino || crocino.highlighted) {
+          crocino.lifetime--;
+          if (crocino.lifetime <= 0 && !crocino.fadingOut) {
+            crocino.fadingOut = true;
+            crocino.growthSpeed = -Math.abs(crocino.growthSpeed) * 0.5;
+          }
+
+          if (crocino.fadingOut && crocino.scale <= 0) {
+            crocini[index] = createCrocino(crocino.x, crocino.y, false);
+          }
+        }
+
+        ctx.save();
+        ctx.translate(crocino.x, crocino.y);
+        // Interpolazione della rotazione per renderla più smooth
+        crocino.rotation = lerp(crocino.rotation, crocino.targetRotation, 0.05);
+        crocino.currentRotation += crocino.rotation;
+        ctx.rotate(crocino.currentRotation);
+        ctx.strokeStyle = crocino.color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-dotSpacing / 4 * crocino.scale, 0);
+        ctx.lineTo(dotSpacing / 4 * crocino.scale, 0);
+        ctx.moveTo(0, -dotSpacing / 4 * crocino.scale);
+        ctx.lineTo(0, dotSpacing / 4 * crocino.scale);
+        ctx.stroke();
+
+        if (crocino.fadingOut) {
+          crocino.traceScale = Math.max(0, crocino.traceScale - 0.02);
+          ctx.strokeStyle = 'rgba(200, 200, 200, 0.3)';
+          ctx.beginPath();
+          ctx.moveTo(-dotSpacing / 4 * crocino.traceScale, 0);
+          ctx.lineTo(dotSpacing / 4 * crocino.traceScale, 0);
+          ctx.moveTo(0, -dotSpacing / 4 * crocino.traceScale);
+          ctx.lineTo(0, dotSpacing / 4 * crocino.traceScale);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+
+        crocino.framesSinceLastChange++;
+        if (crocino.framesSinceLastChange >= crocino.rotationSpeedChangeFrequency) {
+          // Cambia gradualmente la rotazione
+          crocino.targetRotation = (Math.random() < 0.5 ? -1 : 1) * (0.1 + Math.random() * 0.1);
+          crocino.framesSinceLastChange = 0;
+        }
+      });
+
+      setTimeout(() => requestAnimationFrame(drawDots), 33);
+    }
+
+    document.addEventListener('mousemove', (event) => {
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+
+      crocini.forEach((crocino) => {
+        const distance = Math.sqrt(Math.pow(mouseX - crocino.x, 2) + Math.pow(mouseY - crocino.y, 2));
+        if (distance < mousePadding && Math.random() < hoverPercentage) {
+          crocino.highlighted = true;
+          const colors = ['rgba(255, 0, 255, 0.7)', 'rgba(0, 255, 0, 0.7)', 'rgba(0, 255, 255, 0.7)'];
+          crocino.color = colors[Math.floor(Math.random() * colors.length)];
+          crocino.lifetime = maxLifetime - Math.floor(distance / mousePadding * maxLifetime / 2);
+        } else {
+          if (!crocino.fadingOut && crocino.scale === 0) {
+            crocino.highlighted = false;
+            crocino.color = crocino.isCrocino ? 'rgba(200, 200, 200, 0.7)' : 'rgba(200, 200, 200, 0.5)';
+          }
+        }
+      });
+    });
+
+    generateCrocini();
+    drawDots();
+  </script>
+</body>
+</html>
